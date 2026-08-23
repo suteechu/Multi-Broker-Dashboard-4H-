@@ -67,7 +67,7 @@ tv = get_tv()
 
 # นิยามโบรกเกอร์ (Exchanges) สำหรับแต่ละประเภท (เอาแค่ 3 โบรกเกอร์)
 crypto_brokers = ["CRYPTO", "BINANCE", "VANTAGE"]
-forex_brokers = ["OANDA", "FOREXCOM", "PEPPERSTONE"]
+forex_brokers = ["OANDA", "FOREXCOM", "VANTAGE"]
 dxy_brokers = ["TVC", "CAPITALCOM", "CURRENCYCOM"]
 
 # รายชื่อสินทรัพย์ (รวม 12 สินทรัพย์ เพื่อให้ได้ 6 แถว แถวละ 2 สินทรัพย์)
