@@ -22,8 +22,8 @@ st.markdown("""
 import streamlit.components.v1 as components
 from streamlit_autorefresh import st_autorefresh
 
-# 1. ระบบ Auto-Refresh (ทุกๆ 1 นาที)
-st_autorefresh(interval=60000, limit=None, key="data_refresh")
+# 1. ระบบ Auto-Refresh (ทุกๆ 15 นาที)
+st_autorefresh(interval=900000, limit=None, key="data_refresh")
 
 col1, col2, col3 = st.columns([3, 2, 2])
 
@@ -80,7 +80,7 @@ with col3:
     """
     components.html(timer_html, height=45)
 
-st.markdown("<div style='font-family: \"Prompt\", sans-serif; font-size: 13px; color: #718096; margin-bottom: 5px; margin-top: 0px;'>เปรียบเทียบ 3 แท่งล่าสุดจาก 6 โบรกเกอร์ | รีเฟรชอัตโนมัติทุกๆ 1 นาที</div>", unsafe_allow_html=True)
+st.markdown("<div style='font-family: \"Prompt\", sans-serif; font-size: 13px; color: #718096; margin-bottom: 5px; margin-top: 0px;'>เปรียบเทียบ 3 แท่งล่าสุดจาก 6 โบรกเกอร์ | รีเฟรชอัตโนมัติทุกๆ 15 นาที</div>", unsafe_allow_html=True)
 
 # Initialize tvdatafeed
 @st.cache_resource
