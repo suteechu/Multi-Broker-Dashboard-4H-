@@ -20,43 +20,67 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 import streamlit.components.v1 as components
+from streamlit_autorefresh import st_autorefresh
 
-col1, col2 = st.columns([3, 1])
+# 1. ระบบ Auto-Refresh (ทุกๆ 1 นาที)
+st_autorefresh(interval=60000, limit=None, key="data_refresh")
+
+col1, col2, col3 = st.columns([3, 2, 2])
 
 with col1:
-    st.markdown("<h4 style='font-family: \"Space Mono\", sans-serif; font-size: 22px; font-weight: bold; margin-bottom:0px; margin-top:0px; letter-spacing: -0.5px;'>📊 Multi-Broker Dashboard (4H)</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='font-family: \"Space Mono\", sans-serif; font-size: 22px; font-weight: bold; margin-bottom:0px; margin-top:0px; letter-spacing: -0.5px;'>📊 Multi-Broker Dashboard</h4>", unsafe_allow_html=True)
 
 with col2:
-    timer_html = """
+    # 2. ปรับ Timeframe (4H | 1D | 1W)
+    st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;} </style>", unsafe_allow_html=True)
+    selected_tf_str = st.radio("Timeframe", ["4H", "1D", "1W"], horizontal=True, label_visibility="collapsed")
+
+with col3:
+    # 3. อัปเดต Timer ให้คำนวณตาม Timeframe
+    timer_html = f"""
     <div style="font-family: 'Space Mono', sans-serif; font-size: 13px; font-weight: bold; color: #00FFA3; display: flex; align-items: center; justify-content: flex-end; margin-top: 5px;">
-        <span style="color: #A0AEC0; margin-right: 8px;">Next 4H Candle in:</span>
+        <span style="color: #A0AEC0; margin-right: 8px;">Next {selected_tf_str} Candle in:</span>
         <span id="candle-timer" style="letter-spacing: 1px; background: rgba(0,255,163,0.1); padding: 2px 6px; border-radius: 4px;">--:--:--</span>
     </div>
     <script>
-        function updateTimer() {
+        var tf = "{selected_tf_str}";
+        function updateTimer() {{
             var now = new Date();
-            var next4h = new Date(now);
-            var currentHour = now.getUTCHours();
-            var nextHour = currentHour + (4 - (currentHour % 4));
-            next4h.setUTCHours(nextHour, 0, 0, 0);
+            var nextCandle = new Date(now);
             
-            var diff = next4h - now;
-            var h = Math.floor(diff / 3600000);
+            if (tf === "4H") {{
+                var currentHour = now.getUTCHours();
+                var nextHour = currentHour + (4 - (currentHour % 4));
+                nextCandle.setUTCHours(nextHour, 0, 0, 0);
+            }} else if (tf === "1D") {{
+                nextCandle.setUTCDate(now.getUTCDate() + 1);
+                nextCandle.setUTCHours(0, 0, 0, 0);
+            }} else if (tf === "1W") {{
+                var daysUntilMonday = (1 - now.getUTCDay() + 7) % 7;
+                if (daysUntilMonday === 0) daysUntilMonday = 7;
+                nextCandle.setUTCDate(now.getUTCDate() + daysUntilMonday);
+                nextCandle.setUTCHours(0, 0, 0, 0);
+            }}
+            
+            var diff = nextCandle - now;
+            var d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            var h = Math.floor((diff % (1000 * 60 * 60 * 24)) / 3600000);
             var m = Math.floor((diff % 3600000) / 60000);
             var s = Math.floor((diff % 60000) / 1000);
             
-            document.getElementById('candle-timer').innerText = 
-                (h < 10 ? "0"+h : h) + ":" + 
-                (m < 10 ? "0"+m : m) + ":" + 
-                (s < 10 ? "0"+s : s);
-        }
+            var timerStr = "";
+            if (tf === "1W" && d > 0) timerStr += d + "d ";
+            timerStr += (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+            
+            document.getElementById('candle-timer').innerText = timerStr;
+        }}
         setInterval(updateTimer, 1000);
         updateTimer();
     </script>
     """
     components.html(timer_html, height=45)
 
-st.markdown("<div style='font-family: \"Prompt\", sans-serif; font-size: 13px; color: #718096; margin-bottom: 5px; margin-top: 0px;'>เปรียบเทียบ 3 แท่งล่าสุดจาก 6 โบรกเกอร์ | รีเฟรชเพื่ออัปเดต</div>", unsafe_allow_html=True)
+st.markdown("<div style='font-family: \"Prompt\", sans-serif; font-size: 13px; color: #718096; margin-bottom: 5px; margin-top: 0px;'>เปรียบเทียบ 3 แท่งล่าสุดจาก 6 โบรกเกอร์ | รีเฟรชอัตโนมัติทุกๆ 1 นาที</div>", unsafe_allow_html=True)
 
 # Initialize tvdatafeed
 @st.cache_resource
@@ -91,9 +115,17 @@ assets = [
     {"name": "💱 GBP/JPY", "symbol": "GBPJPY", "type": "forex", "decimals": 3}
 ]
 
+# แปลง String เป็น Interval
+tf_map = {
+    "4H": Interval.in_4_hour,
+    "1D": Interval.in_daily,
+    "1W": Interval.in_weekly
+}
+selected_interval = tf_map[selected_tf_str]
+
 def fetch_data(symbol, exchange):
     try:
-        df = tv.get_hist(symbol=symbol, exchange=exchange, interval=Interval.in_4_hour, n_bars=3)
+        df = tv.get_hist(symbol=symbol, exchange=exchange, interval=selected_interval, n_bars=3)
         return df
     except:
         return None
@@ -109,7 +141,8 @@ def fetch_pdh_pdl(symbol, exchange):
         return None, None
 
 def plot_candlestick(df, pdh=None, pdl=None, y_range=None):
-    x_labels = df.index.strftime('%H:%M')
+    # ถ้าเป็น 1D หรือ 1W ให้โชว์วันที่แทนเวลา
+    x_labels = df.index.strftime('%Y-%m-%d' if selected_tf_str in ["1D", "1W"] else '%H:%M')
     
     fig = go.Figure(data=[go.Candlestick(x=x_labels,
                 open=df['open'],
@@ -165,6 +198,17 @@ def get_asset_data_and_range(asset, brokers):
         
     return data_list, y_range
 
+# ฟังก์ชันสร้าง Badge เตือน Sweep
+def get_sweep_badge(df, pdh, pdl):
+    if df is None or df.empty or pdh is None or pdl is None:
+        return ""
+    last_candle = df.iloc[-1]
+    if last_candle['high'] > pdh:
+        return "<span style='color:#10B981; font-size:10px; margin-left:5px; background:rgba(16,185,129,0.1); padding:2px 4px; border-radius:3px;'>🚨 PDH Sweep</span>"
+    if last_candle['low'] < pdl:
+        return "<span style='color:#EF4444; font-size:10px; margin-left:5px; background:rgba(239,68,68,0.1); padding:2px 4px; border-radius:3px;'>🚨 PDL Sweep</span>"
+    return ""
+
 # เรนเดอร์ UI แบบจับคู่ (2 สินทรัพย์ต่อ 1 แถว)
 for i in range(0, len(assets), 2):
     asset1 = assets[i]
@@ -196,8 +240,9 @@ for i in range(0, len(assets), 2):
         if j < len(data1):
             item = data1[j]
             broker = item['broker']
+            badge = get_sweep_badge(item['df'], item['pdh'], item['pdl'])
             with cols[j]:
-                st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker} {badge}</div>", unsafe_allow_html=True)
                 if item['df'] is not None and not item['df'].empty:
                     st.plotly_chart(plot_candlestick(item['df'], item['pdh'], item['pdl'], y_range1), use_container_width=True)
                 else:
@@ -209,8 +254,9 @@ for i in range(0, len(assets), 2):
             if j < len(data2):
                 item = data2[j]
                 broker = item['broker']
+                badge = get_sweep_badge(item['df'], item['pdh'], item['pdl'])
                 with cols[j+3]:
-                    st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker} {badge}</div>", unsafe_allow_html=True)
                     if item['df'] is not None and not item['df'].empty:
                         st.plotly_chart(plot_candlestick(item['df'], item['pdh'], item['pdl'], y_range2), use_container_width=True)
                     else:
