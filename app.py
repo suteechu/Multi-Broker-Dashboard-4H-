@@ -96,23 +96,23 @@ dxy_brokers = ["TVC", "CAPITALCOM", "CURRENCYCOM"]
 
 # รายชื่อสินทรัพย์ (รวม 12 สินทรัพย์ เพื่อให้ได้ 6 แถว แถวละ 2 สินทรัพย์)
 assets = [
-    {"name": "₿ BTC/USD", "symbol": "BTCUSD", "type": "crypto", "decimals": 2},
-    {"name": "🥇 Gold (XAU/USD)", "symbol": "XAUUSD", "type": "forex", "decimals": 2},
+    {"name": "₿ BTCUSD", "symbol": "BTCUSD", "type": "crypto", "decimals": 2},
+    {"name": "🥇 Gold (XAUUSD)", "symbol": "XAUUSD", "type": "forex", "decimals": 2},
     
     {"name": "💵 U.S. Dollar Index (DXY)", "symbol": "DXY", "type": "dxy", "decimals": 3},
-    {"name": "💱 EUR/USD", "symbol": "EURUSD", "type": "forex", "decimals": 5},
+    {"name": "💱 EURUSD", "symbol": "EURUSD", "type": "forex", "decimals": 5},
     
-    {"name": "💱 GBP/USD", "symbol": "GBPUSD", "type": "forex", "decimals": 5},
-    {"name": "💱 USD/JPY", "symbol": "USDJPY", "type": "forex", "decimals": 3},
+    {"name": "💱 GBPUSD", "symbol": "GBPUSD", "type": "forex", "decimals": 5},
+    {"name": "💱 USDJPY", "symbol": "USDJPY", "type": "forex", "decimals": 3},
     
-    {"name": "💱 AUD/USD", "symbol": "AUDUSD", "type": "forex", "decimals": 5},
-    {"name": "💱 USD/CAD", "symbol": "USDCAD", "type": "forex", "decimals": 5},
+    {"name": "💱 AUDUSD", "symbol": "AUDUSD", "type": "forex", "decimals": 5},
+    {"name": "💱 USDCAD", "symbol": "USDCAD", "type": "forex", "decimals": 5},
     
-    {"name": "💱 USD/CHF", "symbol": "USDCHF", "type": "forex", "decimals": 5},
-    {"name": "💱 NZD/USD", "symbol": "NZDUSD", "type": "forex", "decimals": 5},
+    {"name": "💱 USDCHF", "symbol": "USDCHF", "type": "forex", "decimals": 5},
+    {"name": "💱 NZDUSD", "symbol": "NZDUSD", "type": "forex", "decimals": 5},
     
-    {"name": "💱 EUR/JPY", "symbol": "EURJPY", "type": "forex", "decimals": 3},
-    {"name": "💱 GBP/JPY", "symbol": "GBPJPY", "type": "forex", "decimals": 3}
+    {"name": "💱 EURJPY", "symbol": "EURJPY", "type": "forex", "decimals": 3},
+    {"name": "💱 GBPJPY", "symbol": "GBPJPY", "type": "forex", "decimals": 3}
 ]
 
 # แปลง String เป็น Interval สำหรับแท่งเทียนหลัก
