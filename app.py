@@ -131,7 +131,7 @@ def plot_candlestick(df, pdh=None, pdl=None, y_range=None):
 
     fig.update_layout(
         template="plotly_dark",
-        height=450,
+        height=500,
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis_type='category',
         font=dict(size=10, family="Space Mono, Helvetica, sans-serif", color="#A0AEC0"),
