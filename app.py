@@ -115,13 +115,23 @@ assets = [
     {"name": "💱 GBP/JPY", "symbol": "GBPJPY", "type": "forex", "decimals": 3}
 ]
 
-# แปลง String เป็น Interval
+# แปลง String เป็น Interval สำหรับแท่งเทียนหลัก
 tf_map = {
     "4H": Interval.in_4_hour,
     "1D": Interval.in_daily,
     "1W": Interval.in_weekly
 }
 selected_interval = tf_map[selected_tf_str]
+
+# กำหนด Interval อ้างอิงและ Label ของ High/Low ตาม Timeframe ที่เลือก
+ref_map = {
+    "4H": {"interval": Interval.in_daily, "label": "PD"},
+    "1D": {"interval": Interval.in_weekly, "label": "PW"},
+    "1W": {"interval": Interval.in_monthly, "label": "PM"}
+}
+ref_info = ref_map[selected_tf_str]
+ref_interval = ref_info["interval"]
+ref_label = ref_info["label"]
 
 def fetch_data(symbol, exchange):
     try:
@@ -130,17 +140,17 @@ def fetch_data(symbol, exchange):
     except:
         return None
 
-def fetch_pdh_pdl(symbol, exchange):
+def fetch_ref_hl(symbol, exchange):
     try:
-        df = tv.get_hist(symbol=symbol, exchange=exchange, interval=Interval.in_daily, n_bars=2)
+        df = tv.get_hist(symbol=symbol, exchange=exchange, interval=ref_interval, n_bars=2)
         if df is not None and len(df) >= 2:
-            prev_day = df.iloc[-2]
-            return prev_day['high'], prev_day['low']
+            prev_bar = df.iloc[-2]
+            return prev_bar['high'], prev_bar['low']
         return None, None
     except:
         return None, None
 
-def plot_candlestick(df, pdh=None, pdl=None, y_range=None):
+def plot_candlestick(df, ref_h=None, ref_l=None, y_range=None):
     # ถ้าเป็น 1D หรือ 1W ให้โชว์วันที่แทนเวลา
     x_labels = df.index.strftime('%Y-%m-%d' if selected_tf_str in ["1D", "1W"] else '%H:%M')
     
@@ -154,12 +164,12 @@ def plot_candlestick(df, pdh=None, pdl=None, y_range=None):
                 increasing_fillcolor='#FFFFFF', decreasing_fillcolor='#718096'
                 )])
     
-    if pdh is not None and pdl is not None:
-        fig.add_hline(y=pdh, line_dash="dot", line_width=1, line_color="#10B981", 
-                      annotation_text="PDH", annotation_position="top right", 
+    if ref_h is not None and ref_l is not None:
+        fig.add_hline(y=ref_h, line_dash="dot", line_width=1, line_color="#10B981", 
+                      annotation_text=f"{ref_label}H", annotation_position="top right", 
                       annotation_font=dict(size=9, color="#10B981"))
-        fig.add_hline(y=pdl, line_dash="dot", line_width=1, line_color="#EF4444", 
-                      annotation_text="PDL", annotation_position="bottom right", 
+        fig.add_hline(y=ref_l, line_dash="dot", line_width=1, line_color="#EF4444", 
+                      annotation_text=f"{ref_label}L", annotation_position="bottom right", 
                       annotation_font=dict(size=9, color="#EF4444"))
 
     fig.update_layout(
@@ -182,12 +192,12 @@ def get_asset_data_and_range(asset, brokers):
     g_min, g_max = float('inf'), float('-inf')
     for broker in brokers[:3]:
         df = fetch_data(asset['symbol'], broker)
-        pdh, pdl = fetch_pdh_pdl(asset['symbol'], broker)
-        data_list.append({'broker': broker, 'df': df, 'pdh': pdh, 'pdl': pdl})
+        ref_h, ref_l = fetch_ref_hl(asset['symbol'], broker)
+        data_list.append({'broker': broker, 'df': df, 'ref_h': ref_h, 'ref_l': ref_l})
         if df is not None and not df.empty:
             l_min, l_max = df['low'].min(), df['high'].max()
-            if pdl is not None: l_min = min(l_min, pdl)
-            if pdh is not None: l_max = max(l_max, pdh)
+            if ref_l is not None: l_min = min(l_min, ref_l)
+            if ref_h is not None: l_max = max(l_max, ref_h)
             g_min, g_max = min(g_min, l_min), max(g_max, l_max)
             
     y_range = None
@@ -199,14 +209,14 @@ def get_asset_data_and_range(asset, brokers):
     return data_list, y_range
 
 # ฟังก์ชันสร้าง Badge เตือน Sweep
-def get_sweep_badge(df, pdh, pdl):
-    if df is None or df.empty or pdh is None or pdl is None:
+def get_sweep_badge(df, ref_h, ref_l):
+    if df is None or df.empty or ref_h is None or ref_l is None:
         return ""
     last_candle = df.iloc[-1]
-    if last_candle['high'] > pdh:
-        return "<span style='color:#10B981; font-size:10px; margin-left:5px; background:rgba(16,185,129,0.1); padding:2px 4px; border-radius:3px;'>🚨 PDH Sweep</span>"
-    if last_candle['low'] < pdl:
-        return "<span style='color:#EF4444; font-size:10px; margin-left:5px; background:rgba(239,68,68,0.1); padding:2px 4px; border-radius:3px;'>🚨 PDL Sweep</span>"
+    if last_candle['high'] > ref_h:
+        return f"<span style='color:#10B981; font-size:10px; margin-left:5px; background:rgba(16,185,129,0.1); padding:2px 4px; border-radius:3px;'>🚨 {ref_label}H Sweep</span>"
+    if last_candle['low'] < ref_l:
+        return f"<span style='color:#EF4444; font-size:10px; margin-left:5px; background:rgba(239,68,68,0.1); padding:2px 4px; border-radius:3px;'>🚨 {ref_label}L Sweep</span>"
     return ""
 
 # เรนเดอร์ UI แบบจับคู่ (2 สินทรัพย์ต่อ 1 แถว)
@@ -240,11 +250,11 @@ for i in range(0, len(assets), 2):
         if j < len(data1):
             item = data1[j]
             broker = item['broker']
-            badge = get_sweep_badge(item['df'], item['pdh'], item['pdl'])
+            badge = get_sweep_badge(item['df'], item['ref_h'], item['ref_l'])
             with cols[j]:
                 st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker} {badge}</div>", unsafe_allow_html=True)
                 if item['df'] is not None and not item['df'].empty:
-                    st.plotly_chart(plot_candlestick(item['df'], item['pdh'], item['pdl'], y_range1), use_container_width=True)
+                    st.plotly_chart(plot_candlestick(item['df'], item['ref_h'], item['ref_l'], y_range1), use_container_width=True)
                 else:
                     st.warning("No Data")
                     
@@ -254,11 +264,11 @@ for i in range(0, len(assets), 2):
             if j < len(data2):
                 item = data2[j]
                 broker = item['broker']
-                badge = get_sweep_badge(item['df'], item['pdh'], item['pdl'])
+                badge = get_sweep_badge(item['df'], item['ref_h'], item['ref_l'])
                 with cols[j+3]:
                     st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker} {badge}</div>", unsafe_allow_html=True)
                     if item['df'] is not None and not item['df'].empty:
-                        st.plotly_chart(plot_candlestick(item['df'], item['pdh'], item['pdl'], y_range2), use_container_width=True)
+                        st.plotly_chart(plot_candlestick(item['df'], item['ref_h'], item['ref_l'], y_range2), use_container_width=True)
                     else:
                         st.warning("No Data")
 
