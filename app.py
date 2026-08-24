@@ -38,9 +38,9 @@ with col2:
 with col3:
     # 3. อัปเดต Timer ให้คำนวณตาม Timeframe
     timer_html = f"""
-    <div style="font-family: 'Space Mono', sans-serif; font-size: 13px; font-weight: bold; color: #00FFA3; display: flex; align-items: center; justify-content: flex-end; margin-top: 5px;">
-        <span style="color: #A0AEC0; margin-right: 8px;">Next {selected_tf_str} Candle in:</span>
-        <span id="candle-timer" style="letter-spacing: 1px; background: rgba(0,255,163,0.1); padding: 2px 6px; border-radius: 4px;">--:--:--</span>
+    <div style="font-family: 'Space Mono', sans-serif; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; margin-top: 5px;">
+        <span style="color: #718096; margin-right: 8px;">Next {selected_tf_str} Candle in:</span>
+        <span id="candle-timer" style="color: #000000; letter-spacing: 1px; background: rgba(0,255,163,0.3); padding: 4px 10px; border-radius: 6px;">--:--:--</span>
     </div>
     <script>
         var tf = "{selected_tf_str}";
