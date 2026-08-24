@@ -80,7 +80,7 @@ with col3:
     """
     components.html(timer_html, height=45)
 
-st.markdown("<div style='font-family: \"Prompt\", sans-serif; font-size: 13px; color: #718096; margin-bottom: 5px; margin-top: 0px;'>เปรียบเทียบ 3 แท่งล่าสุดจาก 6 โบรกเกอร์ | รีเฟรชอัตโนมัติทุกๆ 15 นาที</div>", unsafe_allow_html=True)
+# st.markdown("<div style='font-family: \"Prompt\", sans-serif; font-size: 13px; color: #718096; margin-bottom: 5px; margin-top: 0px;'>เปรียบเทียบ 3 แท่งล่าสุดจาก 6 โบรกเกอร์ | รีเฟรชอัตโนมัติทุกๆ 15 นาที</div>", unsafe_allow_html=True)
 
 # Initialize tvdatafeed
 @st.cache_resource
@@ -252,7 +252,7 @@ for i in range(0, len(assets), 2):
             broker = item['broker']
             badge = get_sweep_badge(item['df'], item['ref_h'], item['ref_l'])
             with cols[j]:
-                st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker} {badge}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{asset1['symbol']}/{broker} {badge}</div>", unsafe_allow_html=True)
                 if item['df'] is not None and not item['df'].empty:
                     st.plotly_chart(plot_candlestick(item['df'], item['ref_h'], item['ref_l'], y_range1), use_container_width=True)
                 else:
@@ -266,7 +266,7 @@ for i in range(0, len(assets), 2):
                 broker = item['broker']
                 badge = get_sweep_badge(item['df'], item['ref_h'], item['ref_l'])
                 with cols[j+3]:
-                    st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{broker} {badge}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='text-align:center; font-family: \"Space Mono\", sans-serif; font-size:11px; font-weight:bold; color:#A0AEC0; letter-spacing: -0.5px; margin-top: 15px;'>{asset2['symbol']}/{broker} {badge}</div>", unsafe_allow_html=True)
                     if item['df'] is not None and not item['df'].empty:
                         st.plotly_chart(plot_candlestick(item['df'], item['ref_h'], item['ref_l'], y_range2), use_container_width=True)
                     else:
